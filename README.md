@@ -6,6 +6,7 @@ GPT-Corpuses13-2600
 - Anthropic/Claude Sonnet 4.5
 - Anthropic/Claude Opus 4.6 (High Effort)
 - Google/Gemini 3 Pro
+- Google/Gemini 3.1 Pro
 - OpenAI/ChatGPT 5.1 Thinking
 - OpenAI/ChatGPT 5.3 Thinking（予定）
 
