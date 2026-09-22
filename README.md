@@ -1,4 +1,4 @@
-GPTを活用したコーパス用文章  
+GPTを活用したコーパス用文章
 GPT-Corpus13-2600
 
 # 概要
@@ -9,6 +9,7 @@ GPT-Corpus13-2600
 - Google/Gemini 3.1 Pro
 - OpenAI/ChatGPT 5.1 Thinking
 - OpenAI/ChatGPT 5.6 Sol(Ultra)
+- OpenAI/ChatGPT 6 Astra(xHigh)
 
 # ファイル構成
 各モデルフォルダには、13カテゴリを格納しています。
