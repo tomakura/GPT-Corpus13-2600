@@ -1,5 +1,5 @@
 GPTを活用したコーパス用文章  
-GPT-Corpuses13-2600
+GPT-Corpus13-2600
 
 # 概要
 下記モデルで作成した、日本語音声収録向けコーパス文章群です。
@@ -8,7 +8,7 @@ GPT-Corpuses13-2600
 - Google/Gemini 3 Pro
 - Google/Gemini 3.1 Pro
 - OpenAI/ChatGPT 5.1 Thinking
-- OpenAI/ChatGPT 5.3 Thinking（予定）
+- OpenAI/ChatGPT 5.6 Sol(Ultra)
 
 # ファイル構成
 各モデルフォルダには、13カテゴリを格納しています。
@@ -34,7 +34,7 @@ GPT-Corpuses13-2600
 モデルフォルダ直下には、キャラクター設定と読み上げ方をまとめた `CHARACTERS.md` があります（新仕様で作成したモデルのみ）。
 
 注意:
-- すべてのファイルは"Shift-JIS(cp932)"エンコードで作成されています（`CHARACTERS.md` のみ UTF-8）。
+- 各モデルフォルダ内のファイルは"Shift-JIS(cp932)"エンコードで作成されています（`CHARACTERS.md` のみ UTF-8）。
 - 12_WHISPER内の文章および文章量は、モデルによって異なります。
 - 既存データには `*_AUDIT.csv` が未同梱のものがあります。
 - `CORPUS_PROMPT_JA.md` の最新仕様では `*_AUDIT.csv` の同時出力を推奨しています。
@@ -68,3 +68,8 @@ OREMOなどの録音ソフトに読み込むと収録しやすくなります。
 - Claude-Opus-4.6のコーパスを再作成
 - より多様なキャラクター文体を含むように変更
 - たのしい。
+
+2026-09-22
+- コーパス作成プロンプトを編集
+- 事前にキャラクターを作成し、概要をCHARACTERS.mdに記載するように変更
+(この変更はGPT-6以降のコーパスから適応される予定です)
