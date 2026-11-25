@@ -1,2 +1,4 @@
 
 .corpus-work
+__pycache__/
+*.pyc

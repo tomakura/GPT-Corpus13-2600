@@ -5,6 +5,7 @@ GPT-Corpus13-2600
 下記モデルで作成した、日本語音声収録向けコーパス文章群です。
 - Anthropic/Claude Sonnet 4.5
 - Anthropic/Claude Opus 4.6 (High Effort)
+- Anthropic/Claude Opus 5.5
 - Google/Gemini 3 Pro
 - Google/Gemini 3.1 Pro
 - OpenAI/ChatGPT 5.1 Thinking
@@ -34,21 +35,34 @@ GPT-Corpus13-2600
 
 モデルフォルダ直下には、キャラクター設定と読み上げ方をまとめた `CHARACTERS.md` があります（新仕様で作成したモデルのみ）。
 
+仕様 v3（`CORPUS_PROMPT_JA.md`）で作成したモデル（Claude-Opus-5.5 以降）は、次の点が異なります。
+- 12_WHISPER と 13_LAZY は感情別のファイルに分かれています。
+  - `12_WHISPER_{NORMAL,JOY,FUN,SAD,ANGRY,FEAR,CONTEMPT}.txt`（ID は `WHISPER_JOY_001` の形式）
+  - `13_LAZY_{NORMAL,ANGRY,SAD,JOY,FUN,CONTEMPT}.txt`（ID は `LAZY_SAD_001` の形式）
+- 読みが揺れる語には、本文中にカタカナのルビが付いています（例: `辛（ツラ）くて`、`7時（シチジ）`）。ルビは読み方の指示なので、読み上げません。
+- 1行に1〜3文を含みます。笑い・ため息などの非言語の発声（例: 文末の「ふふっ」）を含む行があります。
+- 各ファイルは、先頭から録るほど感情の幅・話者・文長・音素が偏りなく集まる順に並んでいます。途中までの収録でも使えます。
+- `sbv2/` フォルダに、Style-Bert-VITS2 用の `esd.list` / `esd.list.cleaned`、収録用アクセントガイドなどがあります（使い方は `sbv2/README.md`）。
+
 注意:
-- 各モデルフォルダ内のファイルは"Shift-JIS(cp932)"エンコードで作成されています（`CHARACTERS.md` のみ UTF-8）。
+- 各モデルフォルダ内のファイルは"Shift-JIS(cp932)"エンコードで作成されています（`CHARACTERS.md` と `sbv2/` 内の `esd.list` などは UTF-8。`sbv2/accent_guide/` は cp932）。
 - 12_WHISPER内の文章および文章量は、モデルによって異なります。
+- GPT-6-Astra-xHigh には 13_LAZY がありません。
 - 既存データには `*_AUDIT.csv` が未同梱のものがあります。
 - `CORPUS_PROMPT_JA.md` の最新仕様では `*_AUDIT.csv` の同時出力を推奨しています。
 - 最新仕様の `*_AUDIT.csv` は列構成が旧仕様と異なります（`scene` 列を追加し、`length_chars` `phoneme_tags` `reading_ease_score` を廃止）。
 
 # 文章量
-1カテゴリあたり200文です。
-13カテゴリで1モデルあたり2,600文、モデル横断で合計7,800文です。
+基本は1カテゴリあたり200文、13カテゴリで1モデルあたり2,600文です。
+Claude-Opus-5.5 は、12_WHISPER と 13_LAZY を各300文に増やしたため、1モデルで2,800文です。
+- 12_WHISPER（300文）: NORMAL 60、JOY・FUN・SAD・ANGRY・FEAR・CONTEMPT 各40
+- 13_LAZY（300文）: NORMAL 75、ANGRY・SAD・JOY・FUN・CONTEMPT 各45
 
 # 作成手順
 AIに仕様ファイルを参照させて作成します。
 1. `CHARACTERS_PROMPT_JA.md` を参照させ、モデルフォルダに `CHARACTERS.md` を作成
 2. `CORPUS_PROMPT_JA.md` を参照させ、13カテゴリを1つずつ作成
+3. コードを実行できる環境では、`tools/` のスクリプトで検証・並べ替え・SBV2 用ファイルの生成を行う（`tools/README.md`）
 
 # 使用法
 OREMOなどの録音ソフトに読み込むと収録しやすくなります。
@@ -56,6 +70,7 @@ OREMOなどの録音ソフトに読み込むと収録しやすくなります。
 2. [コメントファイルの読み込み]で本文ファイルを選択
 3. 必要に応じて監査CSVを別途参照して品質確認
 4. `CHARACTERS.md` で各キャラクターの読み方を確認（文ごとの話者は監査CSVの `character_style` で確認）
+5. アクセントを確認しながら録る場合は、[コメントファイルの読み込み]で `sbv2/accent_guide/` のファイルを選択（`↑` から高く、`↓` から低く読む）
 
 ※ ソフトの詳細操作は各ツールのWiki等を参照してください。
 
@@ -74,3 +89,9 @@ OREMOなどの録音ソフトに読み込むと収録しやすくなります。
 - コーパス作成プロンプトを編集
 - 事前にキャラクターを作成し、概要をCHARACTERS.mdに記載するように変更
 (この変更はGPT-6以降のコーパスから適応される予定です)
+
+2026-11-25
+- Claude-Opus-5.5のコーパスを作成（2,800文）
+- コーパス作成仕様を v3 に改訂（1行に複数文、非言語の発声、ANNOUNCE の実放送準拠、ルビによる読みの指定、録音効率を考えた並び順、WHISPER/LAZY の感情別分割）
+- Style-Bert-VITS2 用の esd.list / esd.list.cleaned と収録用アクセントガイドを同梱
+- 検証・並べ替え・SBV2 用ファイル生成のスクリプトを `tools/` に追加
