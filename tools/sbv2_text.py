@@ -28,12 +28,16 @@ class _CharTokenizer:
 def _load_tokenizer(language=None, pretrained_model_name_or_path=None, *a, **k):
     global _tok
     if _tok is None:
-        try:
-            from transformers import AutoTokenizer
+        from transformers import AutoTokenizer
 
-            _tok = AutoTokenizer.from_pretrained(pretrained_model_name_or_path or _TOKENIZER_NAME)
+        name = pretrained_model_name_or_path or _TOKENIZER_NAME
+        try:  # キャッシュ済みなら通信しない
+            _tok = AutoTokenizer.from_pretrained(name, local_files_only=True)
         except Exception:
-            _tok = _CharTokenizer()
+            try:
+                _tok = AutoTokenizer.from_pretrained(name)
+            except Exception:
+                _tok = _CharTokenizer()
     return _tok
 
 
