@@ -4,7 +4,7 @@ WHISPER_CONTEMPT_003 ƒAªƒm«ƒqªƒgƒm«ƒgªƒP[Aƒuªƒ‰ƒ“ƒhƒm«ƒjªƒZƒ‚ƒmƒ_ƒˆB
 WHISPER_CONTEMPT_004 ƒAªƒm«[ªƒWƒTƒ“AªƒY«ƒ{ƒ“ƒmªƒ`ƒƒ«ƒbƒNƒqªƒ‰ƒCƒe«ƒ‹AƒGªƒwƒwB
 WHISPER_CONTEMPT_005 ƒRª[ƒ`ƒ‡[ƒZƒ“ƒZ«[ƒmƒnªƒiƒVAªƒ‚«[ƒjªƒWƒ…ƒb«ƒvƒ“ƒ_ƒˆB
 WHISPER_CONTEMPT_006 ƒ_ªƒCƒGƒbƒgƒ`ƒ…[ƒfAƒIª[ƒ‚ƒŠ«ƒIƒJªƒƒŠ«ƒTªƒ“ƒoƒC«ƒƒ_ƒˆB
-WHISPER_CONTEMPT_007 ƒPªƒbƒLƒ‡ƒNAªƒi«ƒjƒ‚ƒLªƒ}ƒ‰ƒiƒJƒbƒ^«ƒlBBB
+WHISPER_CONTEMPT_007 ƒPªƒbƒLƒ‡ƒNAªƒi«ƒjƒ‚ƒLªƒ}ƒ‰ƒiƒJƒbƒ^«ƒlc
 WHISPER_CONTEMPT_008 ƒ}ªƒ^«ƒ^ªƒCƒ`ƒ‡[ƒt«ƒŠƒ‡[ƒ_ƒbƒeBƒ_ªƒCƒWƒi«ƒqªƒj«ƒJªƒM«ƒbƒeAƒ}ªƒCƒJƒCƒ_ƒˆƒlB
 WHISPER_CONTEMPT_009 ƒAª[«ƒCªƒE«ƒmAƒqªƒg«ƒŠƒWƒƒªƒi«ƒjƒ‚ƒfªƒL«ƒiƒCƒqªƒg«ƒ^ƒ`ƒ_ƒˆƒlBƒ_ªƒb«ƒTB
 WHISPER_CONTEMPT_010 ƒAªƒm«ƒJªƒ^«ƒmªƒJ«ƒCƒMƒmƒXªƒXƒƒJƒ^Aƒ}ªƒCƒJƒC«[ªƒ`ƒW«ƒJƒ“ƒƒmªƒrƒ}«ƒXƒlBªƒi«ƒjƒJAƒRªƒcƒfƒ‚ƒA«ƒ‹ªƒ“«ƒfƒVƒ‡[ƒJB
@@ -14,11 +14,11 @@ WHISPER_CONTEMPT_013 ƒYªƒ‹«ƒVƒeªƒJ«ƒbƒeAƒEªƒŒƒV«[ƒmªƒJƒiB
 WHISPER_CONTEMPT_014 ªƒ~«ƒSƒgƒiƒjªƒQƒAƒVƒ_BƒCªƒNƒTƒˆ«ƒŠAƒ\ªƒ`ƒ‰ƒm«ƒTªƒCƒm[ƒK[«ƒ‹ƒ‰ƒV[B
 WHISPER_CONTEMPT_015 ƒjª[ƒ`ƒƒƒ“Aƒ€ªƒVƒK«ƒRªƒ«ƒCªƒ“«ƒ_ƒbƒeB
 WHISPER_CONTEMPT_016 ªƒA«[ƒ„ƒbƒeƒCª[ƒAƒ‰ƒ\«ƒbƒeƒCªƒ‹«ƒqªƒgƒ^ƒ`ƒzƒhAªƒz«ƒ“ƒIªƒˆ«ƒ“ƒfƒCªƒiƒCƒ“«ƒ_ƒˆBªƒV«ƒYƒJƒiƒqªƒgƒzƒhAƒ‚ªƒmƒV«ƒŠƒiƒmƒjƒlB
-WHISPER_CONTEMPT_017 ªƒn«ƒCƒbƒeƒCªƒbƒVƒ…«[ƒJƒ“ƒfAªƒ‚«[ƒZªƒ“ƒpƒCƒ~«ƒ^ƒCƒiƒNªƒ`ƒL«[ªƒe«ƒ‹ƒˆƒlB
+WHISPER_CONTEMPT_017 ªƒn«ƒCƒbƒeƒCªƒbƒVƒ…«[ƒJƒ“ƒfAªƒ‚«[ƒZªƒ“ƒpƒCƒ~«ƒ^ƒCƒiƒNªƒ`ƒL«[ƒeƒ‹ƒˆƒlB
 WHISPER_CONTEMPT_018 ªƒw«[AƒAªƒŒƒK«[ªƒ^ƒ‰ƒV«[ªƒJ«ƒmƒWƒ‡HªƒVƒ…«ƒ~AƒJªƒƒbƒ^ƒ“«ƒ_ƒlB
 WHISPER_CONTEMPT_019 ƒAªƒCƒcƒm«ƒVªƒSƒgAƒ~ªƒ^ƒƒ_ƒPƒ_«ƒiB
 WHISPER_CONTEMPT_020 ƒAªƒŒƒf«ƒJªƒNƒŒƒe«ƒ‹ƒcªƒ‚ƒŠƒiƒ“«ƒ_BƒAªƒ^ƒ}Aƒ~ªƒGƒe«ƒ‹ªƒ“«ƒ_ƒPƒhAƒNªƒX«ƒbB
-WHISPER_CONTEMPT_021 ƒuªƒ`ƒ‡[AªƒT«ƒbƒLƒgƒCªƒbƒe«ƒ‹ƒRªƒg«ƒKƒ}ªƒMƒƒƒNƒiƒ“«ƒfƒXƒPƒhBƒLªƒYƒCƒe«ƒiƒCƒmªƒJƒiBƒ~ªƒ“ƒiAƒEªƒiƒYƒCƒe«ƒ‹ƒPƒhBBB
+WHISPER_CONTEMPT_021 ƒuªƒ`ƒ‡[AªƒT«ƒbƒLƒgƒCªƒbƒe«ƒ‹ƒRªƒg«ƒKƒ}ªƒMƒƒƒNƒiƒ“«ƒfƒXƒPƒhBƒLªƒYƒCƒe«ƒiƒCƒmªƒJƒiBƒ~ªƒ“ƒiAƒEªƒiƒYƒCƒe«ƒ‹ƒPƒhc
 WHISPER_CONTEMPT_022 ªƒR«ƒGƒm[ª[ƒL«ƒTƒgAƒnªƒiƒV«ƒmƒ^ªƒ_ƒV«ƒTƒAƒJªƒ“ƒP[ƒi«ƒCªƒ“«ƒfƒXƒPƒhƒlB
 WHISPER_CONTEMPT_023 ƒAªƒm«ƒqªƒgAƒRª[ƒnƒCƒjƒVƒJ«ƒcªƒˆƒNƒfƒ‰ƒŒ«ƒiƒCªƒ“«ƒ_ƒˆB
 WHISPER_CONTEMPT_024 ƒ}ªƒ^«ƒgªƒbƒe«ƒ‹Bƒiªƒ“ƒ}ƒC«ƒH
@@ -36,5 +36,5 @@ WHISPER_CONTEMPT_035 ƒAªƒm«ƒqªƒgAƒjƒ“ƒmƒªƒ‹«ƒOƒ`ƒoƒbƒJƒŠ[ªƒbƒe«ƒ‹ƒNªƒ
 WHISPER_CONTEMPT_036 ƒ\ªƒm«ƒCª[ƒƒPAƒTªƒ“«ƒlƒ“ªƒ}«ƒGƒjƒ‚ƒLªƒLƒ}«ƒVƒ^B
 WHISPER_CONTEMPT_037 ƒAªƒm«ƒqªƒgAƒeªƒ“ƒCƒ“ƒTƒ“ƒjƒ_ƒP«[ªƒ‰«ƒ\[ƒ_ƒˆƒlB
 WHISPER_CONTEMPT_038 ƒ}ªƒ^Aƒ\ªƒm«ƒnªƒiƒVBªƒt«ƒbAªƒˆ«ƒNƒAªƒL«ƒiƒCƒlB
-WHISPER_CONTEMPT_039 ƒRªƒmƒŠƒ‡«[ƒfAƒRªƒm«ƒlªƒ_ƒ“ƒiƒ“«ƒ_BBB
+WHISPER_CONTEMPT_039 ƒRªƒmƒŠƒ‡«[ƒfAƒRªƒm«ƒlªƒ_ƒ“ƒiƒ“«ƒ_c
 WHISPER_CONTEMPT_040 ƒAªƒCƒcAƒ}ªƒ^«ƒVƒ…ªƒNƒ_ƒC«ƒªƒXƒŒƒ^«ƒbƒeBªƒ}«ƒCƒjƒ`ƒ_ƒˆAªƒ}«ƒCƒjƒ`B

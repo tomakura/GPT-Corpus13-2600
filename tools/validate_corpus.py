@@ -46,6 +46,8 @@ from corpus_lib import (  # noqa: E402
     text_len,
 )
 
+LAUGH_END_RE = re.compile("(" + "|".join(sorted(map(re.escape, NONVERBAL_TOKENS["laugh"]), key=len, reverse=True)) + ")[。！？…]+$")
+
 
 class Report:
     def __init__(self) -> None:
@@ -218,7 +220,7 @@ def check_category(code: str, parts: list[Part], rows_by_part: dict, rep: Report
     lo, hi = nonverbal_target(code)
     range_warn(rep, f"{code}: 非言語の行数", len(nvl), lo, hi)
     if nvl:
-        laughs_end = sum(1 for r in nvl if r.nonverbal == "laugh" and re.search(r"(ふふっ|ふふ|うふふ|くすっ|くすくす|あははっ|あはは|はははっ|ははっ|えへへ|へへっ|へへ|くくっ|ふっ|はっ)[。！？…]+$", strip_ruby(r.text)))
+        laughs_end = sum(1 for r in nvl if r.nonverbal == "laugh" and LAUGH_END_RE.search(strip_ruby(r.text)))
         if laughs_end * 2 < len(nvl):
             rep.warn(f"{code}: 文末の笑いが非言語の半分未満（{laughs_end}/{len(nvl)}）")
     # キャラ

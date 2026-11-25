@@ -66,12 +66,37 @@ def phones_of(text: str) -> list[str]:
     return clean(text)[1]
 
 
-def resolve_ruby(text: str) -> tuple[str, list[tuple[str, str, str]]]:
+def _norm_ph(ph: list[str]) -> str:
+    """比較用に、句読点と `_` を除いた音素列を空白区切りの文字列にする。"""
+    return " " + " ".join(p for p in ph if p not in PUNCT_PHONES and p != "_") + " "
+
+
+def _strip(ph: list[str]) -> list[str]:
+    """句読点と `_` を除いた音素列（位置の比較用）。"""
+    return [p for p in ph if p not in PUNCT_PHONES and p != "_"]
+
+
+def _loose(ph: list[str]) -> list[str]:
+    """直前部分の比較用。「もう」を単独で読むと m o u、文中では m o o になる類の揺れを吸収する。"""
+    out = list(ph)
+    for i in range(1, len(out)):
+        if (out[i - 1], out[i]) in (("o", "u"), ("e", "i")):
+            out[i] = out[i - 1]
+    return out
+
+
+def resolve_ruby(text: str) -> tuple[str, list[tuple[str, str, str, str]]]:
     """ルビ付き本文から SBV2 に渡すテキストを作る。
 
     各ルビについて、漢字のまま（ルビを外しただけ）の文と、その語をルビのひらがなに置き換えた文の
-    音素列を比べる。一致すれば漢字を残し、食い違えばひらがなにする。
-    戻り値: (esd 用テキスト, [(base, ruby, 採用した表記), ...])
+    音素列を比べる。
+    - 同じなら漢字を残す（BERT の意味情報を保つため）。
+    - 漢字のままで、その位置がルビどおりに読めていれば漢字を残す（かなにすると前後と誤って結合することがある）。
+      位置は「直前までの本文を単独で読んだ音素列」の長さで求める。
+    - かなにして、その位置がルビどおりに読めれば、かなにする。
+    - どちらでもルビどおりに読めない場合や、かなにしたことで直前の読みまで変わる場合は
+      かなにしたうえで「要確認」を付ける（sbv2_build がエラーにする）。
+    戻り値: (esd 用テキスト, [(base, ruby, 採用した表記, 備考), ...])
     """
     spans = list(RUBY_RE.finditer(text))
     if not spans:
@@ -80,7 +105,7 @@ def resolve_ruby(text: str) -> tuple[str, list[tuple[str, str, str]]]:
     pos = 0
     for m in spans:
         pieces.append(text[pos : m.start()])
-        pieces.append([m.group(1), kata_to_hira(m.group(2)), m.group(1)])  # base, kana, choice
+        pieces.append([m.group(1), kata_to_hira(m.group(2)), m.group(1), m.group(2)])  # base, kana, choice, ruby
         pos = m.end()
     pieces.append(text[pos:])
 
@@ -88,16 +113,31 @@ def resolve_ruby(text: str) -> tuple[str, list[tuple[str, str, str]]]:
         return "".join(p if isinstance(p, str) else p[2] for p in pieces)
 
     log = []
-    for p in pieces:
+    for k, p in enumerate(pieces):
         if isinstance(p, str):
             continue
+        before = "".join(q if isinstance(q, str) else q[2] for q in pieces[:k])
+        pre = _strip(phones_of(before)) if before.strip() else []
+        exp = _strip(phones_of(p[3]))
         p[2] = p[0]
-        a = phones_of(render())
+        a = _strip(phones_of(render()))
         p[2] = p[1]
-        b = phones_of(render())
-        if a == b:
+        b = _strip(phones_of(render()))
+
+        def at_pos(x: list[str]) -> bool:
+            # 直前までの読みが単独で読んだときと同じで、その直後にルビの読みが来るか
+            return _loose(x[: len(pre)]) == _loose(pre) and x[len(pre) : len(pre) + len(exp)] == exp
+
+        note = ""
+        if a == b or at_pos(a):
             p[2] = p[0]
-        log.append((p[0], p[1], p[2]))
+        elif at_pos(b):
+            pass
+        elif _loose(b[: len(pre)]) != _loose(pre):
+            note = "要確認: かなにすると直前の読みも変わる"
+        else:
+            note = "要確認: 漢字でもかなでもルビどおりに読めない"
+        log.append((p[0], p[1], p[2], note))
     return render(), log
 
 

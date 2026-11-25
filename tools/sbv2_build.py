@@ -20,12 +20,13 @@
 from __future__ import annotations
 
 import argparse
+import re
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import sbv2_esd  # noqa: E402
-from corpus_lib import PARTS, load_part  # noqa: E402
+from corpus_lib import NONVERBAL_TOKENS, PARTS, load_part  # noqa: E402
 from style_bert_vits2.nlp.symbols import SYMBOLS  # noqa: E402
 
 
@@ -44,6 +45,28 @@ def load_overrides(path: Path) -> dict[str, str]:
             raise ValueError(f"{path}:{n}: ID が重複: {cols[0]}")
         ov[cols[0]] = cols[1].strip()
     return ov
+
+
+def pretty_guide(acc: str) -> str:
+    """収録用ガイドの表示用。SBV2 が「…」を「...」（3つの句点）に変えているのを「…」に戻す。"""
+    return re.sub("。。。", "…", acc)
+
+
+def nonverbal_errors(row, phones: list[str]) -> list[str]:
+    """非言語の表記が、行頭に置いたときと同じ音素で読まれているか（読点の後で助詞と誤解析されるのを検出）。"""
+    if row.nonverbal in ("", "none"):
+        return []
+    toks = sorted(NONVERBAL_TOKENS.get(row.nonverbal, []), key=len, reverse=True)
+    line = sbv2_esd._norm_ph(phones)
+    errs = []
+    text = row.text
+    for tok in toks:
+        if tok in text:
+            exp = sbv2_esd._norm_ph(sbv2_esd.phones_of(tok + "。"))
+            if exp not in line:
+                errs.append(f"{row.id}: 非言語「{tok}」が別の音で読まれている（期待:{exp.strip()}）")
+            text = text.replace(tok, "＿")
+    return errs
 
 
 def main() -> int:
@@ -76,8 +99,10 @@ def main() -> int:
         for r in rows:
             n_lines += 1
             esd_text, log = sbv2_esd.resolve_ruby(r.text)
-            for base, kana, choice in log:
-                ruby_log.append(f"{r.id}\t{base}\t{kana}\t{'かな' if choice == kana else '漢字のまま'}\t{esd_text}")
+            for base, kana, choice, note in log:
+                ruby_log.append(f"{r.id}\t{base}\t{kana}\t{'かな' if choice == kana else '漢字のまま'}\t{esd_text}\t{note}")
+                if note:
+                    errors.append(f"{r.id}: ルビ {base}（{kana}）{note}: {esd_text}")
             if "（" in esd_text or "）" in esd_text:
                 errors.append(f"{r.id}: esd テキストにカッコが残っている: {esd_text}")
             try:
@@ -85,6 +110,7 @@ def main() -> int:
             except Exception as e:
                 errors.append(f"{r.id}: SBV2 の読みでエラー: {e}")
                 continue
+            errors.extend(nonverbal_errors(r, phones))
             g2p_acc = sbv2_esd.accent_string(phones, tones)
             if r.id in overrides:
                 used_ov.add(r.id)
@@ -108,7 +134,7 @@ def main() -> int:
             cleaned_lines.append(
                 f"Data\\{a.speaker}\\wavs\\{wav}|{a.speaker}|JP|{norm}|{' '.join(phones)}|{' '.join(map(str, tones))}|{' '.join(map(str, w2p))}"
             )
-            guide.append(f"{r.id} {final_acc}")
+            guide.append(f"{r.id} {pretty_guide(final_acc)}")
             rv.append("\t".join([r.id, r.text, esd_text, g2p_acc, final_acc if final_acc != g2p_acc else ""]))
         (out / "accent_guide" / f"{p.stem}.txt").write_bytes(("\r\n".join(guide) + "\r\n").encode("cp932"))
     unused = sorted(set(overrides) - used_ov)
@@ -121,7 +147,7 @@ def main() -> int:
         rd.mkdir(parents=True, exist_ok=True)
         for stem, lines in review.items():
             (rd / f"{stem}.tsv").write_text("ID\t本文\tesd\tg2p\toverride\n" + "\n".join(lines) + "\n", encoding="utf-8")
-        (rd / "ruby_log.tsv").write_text("ID\tbase\tkana\t採用\tesd\n" + "\n".join(ruby_log) + "\n", encoding="utf-8")
+        (rd / "ruby_log.tsv").write_text("ID\tbase\tkana\t採用\tesd\t備考\n" + "\n".join(ruby_log) + "\n", encoding="utf-8")
     n_sub = sum(1 for l in ruby_log if "\tかな\t" in l)
     print(f"{n_lines} 行 / ルビ {len(ruby_log)} 件（かなに置換 {n_sub}）/ アクセント修正 {len(used_ov)} 行")
     for e in errors:
