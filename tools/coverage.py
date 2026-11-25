@@ -43,6 +43,11 @@ def main() -> int:
     ap.add_argument("--codes", nargs="*")
     a = ap.parse_args()
     md = Path(a.model_dir)
+    if not md.is_dir():
+        print(f"モデルフォルダがない: {md}", file=sys.stderr)
+        return 1
+    if sbv2_esd.load_model_user_dict(md):
+        print("ユーザー辞書を読み込んだ（sbv2_build.py と同じ読みで数える）")
     total, head = Counter(), Counter()
     nlines = 0
     for p in PARTS:

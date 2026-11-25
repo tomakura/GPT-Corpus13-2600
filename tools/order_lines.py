@@ -119,6 +119,7 @@ def main() -> int:
         try:
             import sbv2_esd
 
+            sbv2_esd.load_model_user_dict(a.model_dir)  # sbv2_build.py と同じ読みで数える
             moras = [sbv2_esd.moras_of(sbv2_esd.resolve_ruby(r.text)[0]) for r in rows]
         except Exception as e:  # pyopenjtalk がない環境
             print(f"(モーラを使わずに並べる: {e})")

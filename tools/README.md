@@ -66,4 +66,5 @@ character_style	nuance	intensity	nonverbal	near_pair_group	scene	text
 - 非言語（笑い・ため息など）: 行頭に置いたときと同じ音で読まれているか。読点の後で「は」「へ」が助詞と誤解析されるのを検出します。
 - アクセント修正: `accent_overrides.tsv` のモーラ列が g2p の読みと完全に一致すること（読みは変えず、高低だけを変える）。
 - 整合性: `len(phones)==len(tones)`、`sum(word2ph)==len(phones)`、`len(word2ph)==len(norm_text)+2`、全音素が SBV2 の記号集合に含まれること。
-- `user_dict.csv`（OpenJTalk 形式）があれば、ビルド前に辞書として読み込みます。
+- `user_dict.csv`（OpenJTalk 形式）があれば、ビルド前に辞書として読み込みます（`coverage.py` と `order_lines.py` も同じ辞書を使う）。
+- エラーが1つでもあれば `esd.list` / `esd.list.cleaned` / `accent_guide` は書き換えません（レビュー用 TSV は書き出す）。

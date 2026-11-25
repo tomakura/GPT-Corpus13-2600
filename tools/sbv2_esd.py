@@ -57,6 +57,19 @@ def kata_to_hira(s: str) -> str:
     return "".join(out)
 
 
+def load_model_user_dict(model_dir) -> Path | None:
+    """<model_dir>/sbv2/user_dict.csv があれば、SBV2 の読み推定に辞書として読み込む。
+
+    sbv2_build・coverage・order_lines で同じ読みを使うための共通処理。読み込んだパスを返す。
+    """
+    path = Path(model_dir) / "sbv2" / "user_dict.csv"
+    if not path.exists():
+        return None
+    sbv2_text.load_user_dict(path)
+    clean.cache_clear()
+    return path
+
+
 @lru_cache(maxsize=None)
 def clean(text: str):
     return sbv2_text.clean(text)

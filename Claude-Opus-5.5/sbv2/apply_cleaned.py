@@ -14,14 +14,17 @@ wav のパス・話者名・言語（1〜3列目）は SBV2 が書いたもの�
 - 元のファイルは `train.list.bak-日時` のように残す。`--dry-run` を付けると何も書き換えない。
 - norm_text か word2ph が変わった行は、BERT 特徴量（*.bert.pt）を作り直す必要がある。
   SBV2 の bert_gen は、音素の数が同じなら既存の .bert.pt を使い回すため、
-  該当する .bert.pt の一覧を `stale_bert.txt` に書き出す。`--remove-stale-bert` を付けると、
+  該当する .bert.pt の一覧を `stale_bert.txt` に記録する。`--remove-stale-bert` を付けると、
   その .bert.pt を削除する（その後 bert_gen を実行すると作り直される）。
+- 書き換えは、全リストの検査が通ってから行う。`stale_bert.txt` はリストより先に書き、
+  削除できた分だけ記録から外すので、途中で失敗しても再実行すれば続きから処理できる。
 """
 from __future__ import annotations
 
 import argparse
 import datetime
 import os
+import re
 import shutil
 import sys
 from pathlib import Path, PureWindowsPath
@@ -63,8 +66,30 @@ def load_cleaned(path: Path) -> tuple[dict, dict]:
 
 
 def bert_path(wav: str) -> str:
-    # SBV2 の bert_gen と同じ規則
-    return wav.replace(".WAV", ".wav").replace(".wav", ".bert.pt")
+    """wav に対応する BERT 特徴量のパス（SBV2 の bert_gen と同じく、拡張子 .wav を .bert.pt にする）。
+
+    拡張子は大文字小文字を区別しない。.wav で終わらないパスには空文字を返す（削除の対象にしない）。
+    """
+    if not re.search(r"\.wav$", wav, flags=re.IGNORECASE):
+        return ""
+    return re.sub(r"\.wav$", ".bert.pt", wav, flags=re.IGNORECASE)
+
+
+STALE_FILE = Path("stale_bert.txt")
+
+
+def read_stale() -> list[str]:
+    """前回までに記録した、作り直しが済んでいない .bert.pt の一覧。"""
+    if not STALE_FILE.exists():
+        return []
+    return [l.strip() for l in STALE_FILE.read_text(encoding="utf-8").splitlines() if l.strip()]
+
+
+def write_stale(paths: list[str]) -> None:
+    if paths:
+        STALE_FILE.write_text("\n".join(paths) + "\n", encoding="utf-8")
+    elif STALE_FILE.exists():
+        STALE_FILE.unlink()
 
 
 def main() -> int:
@@ -79,10 +104,12 @@ def main() -> int:
 
     by_pair, by_stem = load_cleaned(Path(a.cleaned))
     stamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-    stale: list[str] = []
+    new_stale: list[str] = []
     used: set[tuple[str, str]] = set()
     total = {"lines": 0, "replaced": 0, "unmatched": 0, "phones": 0, "tones": 0, "text": 0}
 
+    # 1段階目: すべてのリストを読み、検査し、変換をメモリ上で済ませる（ここで失敗したら何も書かない）
+    outputs: list[tuple[Path, bytes]] = []
     for lp in map(Path, a.lists):
         raw = lp.read_bytes().decode("utf-8")
         nl = "\r\n" if "\r\n" in raw else "\n"
@@ -114,38 +141,57 @@ def main() -> int:
                 total["tones"] += 1
             if f[3] != ours[3] or f[6] != ours[6]:
                 total["text"] += 1
-                stale.append(bert_path(f[0]))
+                b = bert_path(f[0])
+                if b:
+                    new_stale.append(b)
             out_lines.append("|".join(f[:3] + ours[3:]))
         print(f"{lp}: {len(out_lines)} 行（対応なし {len(unmatched)} 行）")
         for u in unmatched[:10]:
             print(f"  対応なし: {u}")
         if len(unmatched) > 10:
             print(f"  …ほか {len(unmatched) - 10} 行")
-        if not a.dry_run:
-            bak = lp.with_name(f"{lp.name}.bak-{stamp}")
-            shutil.copy2(lp, bak)
-            lp.write_bytes((nl.join(out_lines) + nl).encode("utf-8"))
-            print(f"  書き換えた（元のファイル: {bak.name}）")
+        outputs.append((lp, (nl.join(out_lines) + nl).encode("utf-8")))
 
     print(f"差し替え {total['replaced']} / {total['lines']} 行"
           f"（音素が変わった {total['phones']}、アクセントが変わった {total['tones']}、"
           f"テキストか word2ph が変わった {total['text']}）")
     print(f"cleaned のうち train/val に無かった行: {len(by_pair) - len(used)}（未収録の wav や、学習から外した行）")
 
+    # 前回の実行で作り直しが済んでいない分も合わせる（途中で失敗した後の再実行で取りこぼさないため）
+    stale = list(dict.fromkeys(read_stale() + new_stale))
+    if a.dry_run:
+        if stale:
+            print(f"BERT 特徴量の作り直しが必要な行: {len(stale)}（前回までの未処理分を含む）")
+        return 0
+
+    # 2段階目: 作り直しの記録を先に書き、それからリストを書き換える
+    write_stale(stale)
+    for lp, data in outputs:
+        bak = lp.with_name(f"{lp.name}.bak-{stamp}")
+        shutil.copy2(lp, bak)
+        lp.write_bytes(data)
+        print(f"{lp}: 書き換えた（元のファイル: {bak.name}）")
+
     if stale:
-        sp = Path("stale_bert.txt")
-        if not a.dry_run:
-            sp.write_text("\n".join(stale) + "\n", encoding="utf-8")
-            print(f"BERT 特徴量の作り直しが必要な {len(stale)} 行を {sp} に書き出した。")
-        else:
-            print(f"BERT 特徴量の作り直しが必要な行: {len(stale)}")
-        if a.remove_stale_bert and not a.dry_run:
-            removed = 0
+        print(f"BERT 特徴量の作り直しが必要な {len(stale)} 行を {STALE_FILE} に記録した。")
+        if a.remove_stale_bert:
+            removed, remaining = 0, []
             for b in stale:
-                if os.path.exists(b):
-                    os.remove(b)
-                    removed += 1
+                if not b.lower().endswith(".bert.pt"):
+                    remaining.append(b)
+                    print(f"  .bert.pt ではないので削除しない: {b}", file=sys.stderr)
+                    continue
+                try:
+                    if os.path.exists(b):
+                        os.remove(b)
+                        removed += 1
+                except OSError as e:
+                    remaining.append(b)
+                    print(f"  削除できなかった: {b}（{e}）", file=sys.stderr)
+            write_stale(remaining)
             print(f"  .bert.pt を {removed} 個削除した。続けて bert_gen を実行すること。")
+            if remaining:
+                print(f"  削除できなかった {len(remaining)} 行は {STALE_FILE} に残した。原因を直して再実行すること。")
         else:
             print("  bert_gen の前に、これらの .bert.pt を削除する（--remove-stale-bert でも消せる）。")
     print("次の手順: bert_gen（BERT 特徴量）→ 学習。style_gen は音声から作るので作り直し不要。")

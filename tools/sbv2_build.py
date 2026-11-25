@@ -14,12 +14,15 @@
     accent_overrides.tsv は `ID<TAB>↑↓付きカタカナ` の行。`#` 以降はコメント。
     カタカナのモーラ列が SBV2 の読みと一致しない行はエラーにする（読みは変えず、アクセントだけを直すため）。
 
+検査でエラーが1つでもあれば、esd.list / esd.list.cleaned / accent_guide は書き換えずに終了コード 1 を返す。
+
 --review-dir を付けると、レビュー用の TSV（ID、本文、esd テキスト、g2p のアクセント、最終アクセント）と
 ルビの処理結果を書き出す。
 """
 from __future__ import annotations
 
 import argparse
+import os
 import re
 import sys
 from pathlib import Path
@@ -77,10 +80,16 @@ def main() -> int:
     a = ap.parse_args()
     md = Path(a.model_dir)
     out = md / "sbv2"
-    (out / "accent_guide").mkdir(parents=True, exist_ok=True)
-    user_dict = out / "user_dict.csv"
-    if user_dict.exists():
-        sbv2_esd.sbv2_text.load_user_dict(user_dict)
+    # 出力先を作る前に入力を確かめる（存在しないフォルダを指定して空の出力を作らないため）
+    if not md.is_dir():
+        print(f"モデルフォルダがない: {md}", file=sys.stderr)
+        return 1
+    parts = [p for p in PARTS if (md / f"{p.stem}.txt").exists()]
+    if not parts:
+        print(f"本文ファイル（01_JOY.txt など）が1つもない: {md}", file=sys.stderr)
+        return 1
+    user_dict = sbv2_esd.load_model_user_dict(md)
+    if user_dict:
         print(f"ユーザー辞書を読み込んだ: {user_dict}")
     overrides = load_overrides(out / "accent_overrides.tsv")
     used_ov = set()
@@ -90,11 +99,10 @@ def main() -> int:
     ruby_log = []
     symbols = set(SYMBOLS)
     n_lines = 0
-    for p in PARTS:
-        if not (md / f"{p.stem}.txt").exists():
-            continue
+    guides: dict[str, list[str]] = {}
+    for p in parts:
         rows = load_part(md, p)
-        guide = []
+        guide = guides.setdefault(p.stem, [])
         rv = review.setdefault(p.stem, [])
         for r in rows:
             n_lines += 1
@@ -136,22 +144,35 @@ def main() -> int:
             )
             guide.append(f"{r.id} {pretty_guide(final_acc)}")
             rv.append("\t".join([r.id, r.text, esd_text, g2p_acc, final_acc if final_acc != g2p_acc else ""]))
-        (out / "accent_guide" / f"{p.stem}.txt").write_bytes(("\r\n".join(guide) + "\r\n").encode("cp932"))
     unused = sorted(set(overrides) - used_ov)
     for u in unused:
         errors.append(f"accent_overrides の ID がコーパスにない: {u}")
-    (out / "esd.list").write_bytes(("\r\n".join(esd_lines) + "\r\n").encode("utf-8"))
-    (out / "esd.list.cleaned").write_bytes(("\r\n".join(cleaned_lines) + "\r\n").encode("utf-8"))
+    if n_lines == 0:
+        errors.append("処理した行が0行")
+    # レビュー用 TSV はエラーがあっても書く（直すときに使うため）
     if a.review_dir:
         rd = Path(a.review_dir)
         rd.mkdir(parents=True, exist_ok=True)
         for stem, lines in review.items():
             (rd / f"{stem}.tsv").write_text("ID\t本文\tesd\tg2p\toverride\n" + "\n".join(lines) + "\n", encoding="utf-8")
         (rd / "ruby_log.tsv").write_text("ID\tbase\tkana\t採用\tesd\t備考\n" + "\n".join(ruby_log) + "\n", encoding="utf-8")
+    # SBV2 用の出力は、エラーが1つもないときだけ置き換える（検証済みの既存ファイルを壊さないため）
+    if not errors:
+        outputs = {out / "esd.list": ("\r\n".join(esd_lines) + "\r\n").encode("utf-8"),
+                   out / "esd.list.cleaned": ("\r\n".join(cleaned_lines) + "\r\n").encode("utf-8")}
+        for stem, guide in guides.items():
+            outputs[out / "accent_guide" / f"{stem}.txt"] = ("\r\n".join(guide) + "\r\n").encode("cp932")
+        (out / "accent_guide").mkdir(parents=True, exist_ok=True)
+        for path, data in outputs.items():
+            tmp = path.with_name(path.name + ".tmp")
+            tmp.write_bytes(data)
+            os.replace(tmp, path)
     n_sub = sum(1 for l in ruby_log if "\tかな\t" in l)
     print(f"{n_lines} 行 / ルビ {len(ruby_log)} 件（かなに置換 {n_sub}）/ アクセント修正 {len(used_ov)} 行")
     for e in errors:
         print("ERROR", e)
+    if errors:
+        print("エラーがあるため、esd.list / esd.list.cleaned / accent_guide は書き換えていない。")
     print(f"--- ERROR {len(errors)}")
     return 1 if errors else 0
 

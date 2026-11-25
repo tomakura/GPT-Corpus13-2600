@@ -281,12 +281,16 @@ def main() -> int:
     ap.add_argument("--cross", action="store_true", help="カテゴリをまたいだ重複・類似も調べる")
     ap.add_argument("--quiet", action="store_true", help="WARN の詳細を出さない")
     a = ap.parse_args()
+    known = [p.code for p in PARTS]
+    unknown = [c for c in a.codes if c not in known]
+    if unknown:
+        ap.error(f"不明なカテゴリのコード: {' '.join(unknown)}（使えるコード: {' '.join(dict.fromkeys(known))}）")
     model_dir = Path(a.model_dir)
     rep = Report()
     chars = character_ids(model_dir)
     if not chars:
         rep.warn("CHARACTERS.md のキャスト一覧から id を読めない")
-    codes = a.codes or sorted({p.code for p in PARTS}, key=lambda c: [p.code for p in PARTS].index(c))
+    codes = a.codes or sorted(set(known), key=known.index)
     rows_by_part = {}
     for p in PARTS:
         if p.code in codes:

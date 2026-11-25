@@ -20,16 +20,23 @@ Whisper の書き起こしを使わないので、認識ミス（例:「信頼�
 ## 1. 話者名を置き換える
 `SPEAKER_NAME` を、学習に使う話者名に置き換えます（2つのファイルの両方）。
 
-Linux / macOS / WSL:
+Linux / WSL:
 ```bash
 sed -i 's/SPEAKER_NAME/MyVoice/g' esd.list esd.list.cleaned
 ```
 
+macOS（BSD 版の sed は `-i` の後に拡張子の引数が要る）:
+```bash
+sed -i '' 's/SPEAKER_NAME/MyVoice/g' esd.list esd.list.cleaned
+```
+
 Windows（PowerShell）:
 ```powershell
-foreach ($f in "esd.list","esd.list.cleaned") { (Get-Content $f -Raw -Encoding UTF8) -replace "SPEAKER_NAME","MyVoice" | Set-Content $f -NoNewline -Encoding UTF8 }
+$enc = New-Object System.Text.UTF8Encoding $false; foreach ($f in "esd.list","esd.list.cleaned") { $p = (Resolve-Path $f).Path; [IO.File]::WriteAllText($p, ([IO.File]::ReadAllText($p, $enc) -replace "SPEAKER_NAME","MyVoice"), $enc) }
 ```
-PowerShell 5.1 の `-Encoding UTF8` は BOM を付けます。BOM が気になる場合はエディタで UTF-8（BOM なし）で保存し直してください。
+ファイルは必ず **UTF-8（BOM なし）** のままにしてください。SBV2 の前処理は `esd.list` を BOM なしの UTF-8 として読むため、
+BOM があると先頭行の wav パスに余分な文字が付き、その行が見つからない扱いになります。
+（PowerShell 5.1 の `Set-Content -Encoding UTF8` は BOM を付けるので使わない。上のコマンドは BOM なしで書きます）
 
 ## 2. 収録と配置
 1. 台本どおりに録音し、`01_JOY\JOY_001.wav` のように **カテゴリのフォルダ＋ID のファイル名** で保存します。
@@ -39,8 +46,9 @@ PowerShell 5.1 の `-Encoding UTF8` は BOM を付けます。BOM が気にな�
    テキストと音声がずれた行は、学習を悪くします。
 
 ## 3. 前処理と差し替え
-1. SBV2 の前処理を実行します（WebUI の「データセット作成・前処理」、または `preprocess_all.py`）。
+1. SBV2 の前処理を実行します（WebUI の前処理、または `preprocess_all.py`）。
    この段階で SBV2 が `esd.list.cleaned` と `train.list` / `val.list` を作ります（自前の cleaned は上書きされます）。
+   前処理をまとめて実行した場合は、BERT 特徴量もこの時点で作られます（手順 3 で作り直します）。
 2. SBV2 のフォルダで `apply_cleaned.py` を実行し、`train.list` / `val.list` の読み・アクセントを差し替えます。
    ```bash
    python path/to/apply_cleaned.py --cleaned path/to/esd.list.cleaned --lists Data/<モデル名>/train.list Data/<モデル名>/val.list --dry-run
@@ -50,8 +58,12 @@ PowerShell 5.1 の `-Encoding UTF8` は BOM を付けます。BOM が気にな�
    - 話者名・wav のパス・言語は SBV2 が書いたものを残し、4〜7列目だけを置き換えます。
 3. テキストか word2ph が変わった行は、BERT 特徴量を作り直します。
    SBV2 の bert_gen は、音素の数が同じなら既存の `.bert.pt` を使い回すため、先に削除します。
-   - `apply_cleaned.py` に `--remove-stale-bert` を付けると、該当する `.bert.pt` を削除します（一覧は `stale_bert.txt`）。
-   - 削除した後、BERT 特徴量の生成（`bert_gen.py`、または WebUI の前処理）をもう一度実行します。
+   - `apply_cleaned.py` に `--remove-stale-bert` を付けると、該当する `.bert.pt` を削除します。
+     対象は `stale_bert.txt` に記録され、削除できたものから記録が消えます（途中で失敗しても、再実行で続きから処理できる）。
+     手作業で削除した場合は、`stale_bert.txt` も削除してください。
+   - 削除した後、**BERT 特徴量の生成のステップだけ** を実行します（`bert_gen.py`、または WebUI で前処理を個別に実行できる画面の BERT 特徴量の生成）。
+   - **前処理をまとめて再実行しないでください。** `train.list` / `val.list` が作り直され、差し替えが消えます。
+     誤って再実行した場合は、手順 2 の `apply_cleaned.py` をもう一度実行します。
    - スタイルベクトル（style_gen）は音声から作るので、作り直す必要はありません。
 4. いつもどおり学習します。
 

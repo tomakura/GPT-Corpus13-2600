@@ -235,7 +235,6 @@ def load_part(model_dir: Path, part: Part) -> list[Row]:
 
 
 def write_part(model_dir: Path, part: Part, rows: list[Row]) -> None:
-    model_dir.mkdir(parents=True, exist_ok=True)
     body = "".join(f"{r.id} {r.text}\r\n" for r in rows)
     ids = "".join(f"{r.id}\r\n" for r in rows)
     buf = io.StringIO()
@@ -243,9 +242,15 @@ def write_part(model_dir: Path, part: Part, rows: list[Row]) -> None:
     w.writerow(CSV_HEADER)
     for r in rows:
         w.writerow([r.id, r.character_style, r.nuance, r.intensity, final_punct(r.text), r.nonverbal, r.near_pair_group, r.scene])
-    (model_dir / f"{part.stem}.txt").write_bytes(body.encode("cp932"))
-    (model_dir / f"{part.stem}_IDs.txt").write_bytes(ids.encode("cp932"))
-    (model_dir / f"{part.stem}_AUDIT.csv").write_bytes(buf.getvalue().encode("cp932"))
+    # 3つとも CP932 にエンコードできることを確かめてから書く（途中で失敗して一部だけ更新されるのを防ぐ）
+    outputs = [
+        (model_dir / f"{part.stem}.txt", body.encode("cp932")),
+        (model_dir / f"{part.stem}_IDs.txt", ids.encode("cp932")),
+        (model_dir / f"{part.stem}_AUDIT.csv", buf.getvalue().encode("cp932")),
+    ]
+    model_dir.mkdir(parents=True, exist_ok=True)
+    for path, data in outputs:
+        path.write_bytes(data)
 
 
 DRAFT_COLUMNS = ["character_style", "nuance", "intensity", "nonverbal", "near_pair_group", "scene", "text"]
