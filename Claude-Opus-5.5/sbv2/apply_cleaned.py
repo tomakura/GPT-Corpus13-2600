@@ -182,10 +182,11 @@ def main() -> int:
                     print(f"  .bert.pt ではないので削除しない: {b}", file=sys.stderr)
                     continue
                 try:
-                    if os.path.exists(b):
-                        os.remove(b)
-                        removed += 1
-                except OSError as e:
+                    os.remove(b)
+                    removed += 1
+                except FileNotFoundError:
+                    pass  # もう無い（作り直し待ちのまま bert_gen 前に消えている）ので記録から外してよい
+                except OSError as e:  # 権限がない・ディレクトリなど。記録に残して再実行で続ける
                     remaining.append(b)
                     print(f"  削除できなかった: {b}（{e}）", file=sys.stderr)
             write_stale(remaining)
