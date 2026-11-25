@@ -7,14 +7,14 @@ WHISPER_CONTEMPT_006 ダイエット中で、大盛りおかわり3杯目だよ。
 WHISPER_CONTEMPT_007 結局、何も決まらなかったね…
 WHISPER_CONTEMPT_008 また体調不良だって。大事な日に限って、毎回だよね。
 WHISPER_CONTEMPT_009 ああいうの、一人じゃ何もできない人たちだよね。だっさ。
-WHISPER_CONTEMPT_010 あの方の会議の進め方、毎回1時間は延びますね。何か、こつでもあるんでしょうか。
+WHISPER_CONTEMPT_010 あの方（カタ）の会議の進め方、毎回1時間は延びますね。何か、こつでもあるんでしょうか。
 WHISPER_CONTEMPT_011 起きてる？聞いて、あの人、また自慢話してたんだよ。3回目だよ、ふふっ。
 WHISPER_CONTEMPT_012 あの資料、去年の先輩のとまったく同じだね。日付くらい、直せばいいのに。
 WHISPER_CONTEMPT_013 ずるして勝って、うれしいのかな。
 WHISPER_CONTEMPT_014 見事な逃げ足だ。戦より、そちらの才能があるらしい。
 WHISPER_CONTEMPT_015 にいちゃん、虫が怖いんだって。
 WHISPER_CONTEMPT_016 ああやって言い争っている人たちほど、本を読んでいないんだよ。静かな人ほど、物知りなのにね。
-WHISPER_CONTEMPT_017 入って1週間で、もう先輩みたいな口きいてるよね。
+WHISPER_CONTEMPT_017 入って1週間で、もう先輩みたいな口（クチ）きいてるよね。
 WHISPER_CONTEMPT_018 へえ、あれが新しい彼女？趣味、変わったんだね。
 WHISPER_CONTEMPT_019 あいつの仕事、見た目だけだな。
 WHISPER_CONTEMPT_020 あれで隠れてるつもりなんだ。頭、見えてるんだけど、くすっ。

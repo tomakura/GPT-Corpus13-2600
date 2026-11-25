@@ -9,7 +9,8 @@
     accent_guide/*.txt   … `ID ↑↓付きカタカナ`（CP932, CRLF）。OREMO のコメントファイルとして読める
 
 入力:
-    <model_dir>/*.txt（本文）、<model_dir>/sbv2/accent_overrides.tsv（任意）
+    <model_dir>/*.txt（本文）、<model_dir>/sbv2/accent_overrides.tsv（任意）、<model_dir>/sbv2/user_dict.csv（任意）
+    user_dict.csv は SBV2 の dict_data/default.csv と同じ OpenJTalk 形式。語単位で読み・アクセントを直す。
     accent_overrides.tsv は `ID<TAB>↑↓付きカタカナ` の行。`#` 以降はコメント。
     カタカナのモーラ列が SBV2 の読みと一致しない行はエラーにする（読みは変えず、アクセントだけを直すため）。
 
@@ -54,6 +55,10 @@ def main() -> int:
     md = Path(a.model_dir)
     out = md / "sbv2"
     (out / "accent_guide").mkdir(parents=True, exist_ok=True)
+    user_dict = out / "user_dict.csv"
+    if user_dict.exists():
+        sbv2_esd.sbv2_text.load_user_dict(user_dict)
+        print(f"ユーザー辞書を読み込んだ: {user_dict}")
     overrides = load_overrides(out / "accent_overrides.tsv")
     used_ov = set()
     errors: list[str] = []

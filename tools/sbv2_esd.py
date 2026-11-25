@@ -32,8 +32,29 @@ PUNCT_TO_JA = {",": "、", ".": "。", "!": "！", "?": "？", "…": "…", "'"
 JA_TO_PUNCT = {v: k for k, v in PUNCT_TO_JA.items()}
 
 
+_VOWEL_OF = {}
+for _row, _v in (("アカサタナハマヤラワガザダバパァャヮ", "あ"), ("イキシチニヒミリギジヂビピィ", "い"),
+                 ("ウクスツヌフムユルグズヅブプゥュヴ", "う"), ("エケセテネヘメレゲゼデベペェ", "え"),
+                 ("オコソトノホモヨロヲゴゾドボポォョ", "お")):
+    for _c in _row:
+        _VOWEL_OF[_c] = _v
+
+
 def kata_to_hira(s: str) -> str:
-    return "".join(chr(ord(c) - 0x60) if "ァ" <= c <= "ヶ" else c for c in s)
+    """カタカナをひらがなにする。長音「ー」は正書法のかなに直す（例: トージョー → とうじょう）。
+
+    SBV2 の g2p は、ひらがな中の「ー」で word2ph がずれることがあるため。
+    """
+    out = []
+    prev = ""
+    for c in s:
+        if c == "ー" and prev in _VOWEL_OF:
+            v = _VOWEL_OF[prev]
+            out.append({"お": "う", "え": "い"}.get(v, v))
+            continue
+        out.append(chr(ord(c) - 0x60) if "ァ" <= c <= "ヶ" else c)
+        prev = c
+    return "".join(out)
 
 
 @lru_cache(maxsize=None)

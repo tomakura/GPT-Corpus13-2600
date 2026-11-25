@@ -52,6 +52,25 @@ from style_bert_vits2.nlp.japanese.g2p import g2p  # noqa: E402
 from style_bert_vits2.nlp.japanese.normalizer import normalize_text  # noqa: E402
 
 
+def load_user_dict(csv_path) -> None:
+    """OpenJTalk 形式の CSV（SBV2 の dict_data/default.csv と同じ形式）をコンパイルして読み込む。"""
+    import tempfile
+    from pathlib import Path
+
+    import pyopenjtalk
+
+    csv_path = Path(csv_path)
+    lines = [l for l in csv_path.read_text(encoding="utf-8").splitlines() if l.strip() and not l.startswith("#")]
+    tmp = Path(tempfile.mkdtemp())
+    src = tmp / "user.csv"
+    src.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    dic = tmp / "user.dic"
+    pyopenjtalk.mecab_dict_index(str(src), str(dic))
+    if not dic.is_file():
+        raise RuntimeError(f"ユーザー辞書のコンパイルに失敗: {csv_path}")
+    pyopenjtalk.update_global_jtalk_with_user_dict(str(dic))
+
+
 def clean(text: str, use_jp_extra: bool = True, raise_yomi_error: bool = True):
     """SBV2 の clean_text(JP) と同じ (norm_text, phones, tones, word2ph) を返す。"""
     norm_text = normalize_text(text)
