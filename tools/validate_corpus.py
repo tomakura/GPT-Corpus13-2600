@@ -234,9 +234,10 @@ def check_category(code: str, parts: list[Part], rows_by_part: dict, rep: Report
         if v > 5 * f:
             rep.warn(f"{code}: 決まり文句「{c}」{v} 回（{5 * f:g} まで）")
     oc = Counter(opener(r.text) for r in rows)
+    olim = (8 if code == "ANNOUNCE" else 5) * f  # ANNOUNCE は定型の書き出しが本物らしさの一部
     for o, v in oc.items():
-        if o and v > 5 * f:
-            rep.warn(f"{code}: 書き出し「{o}」{v} 回（{5 * f:g} まで）")
+        if o and v > olim:
+            rep.warn(f"{code}: 書き出し「{o}」{v} 回（{olim:g} まで）")
     if code in EMOTIONAL or code in ("WHISPER", "LAZY"):
         ev = sum(1 for r in rows if any(w in strip_ruby(r.text) for w in EMOTION_WORDS))
         if ev > 0.35 * total:
